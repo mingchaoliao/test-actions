@@ -11,6 +11,11 @@ on:
         description: 'Pull request number'
         required: true
         type: number
+      is-preview:
+        description: 'Is this a plan preview?'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -20,7 +25,7 @@ permissions:
 
 jobs:
   plan:
-    name: 'Plan (${{ inputs.env }})'
+    name: ${{ inputs.is-preview && format('Preview Plan ({0})', inputs.env) || format('Plan ({0})', inputs.env) }}
     runs-on: cad
     steps:
       - uses: actions/checkout@v4

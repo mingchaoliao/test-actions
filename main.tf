@@ -3,5 +3,5 @@ variable "env" {
 }
 
 output "first_output" {
-  value = "[update 4] Hello World from ${var.env} environment!"
+  value = "[update 5] Hello World from ${var.env} environment!"
 }

@@ -24,7 +24,7 @@ jobs:
       pr-number: ${{ github.event.pull_request.number }}
 
 #  preview-plan-test-qa-prod:
-#    name: 'Dev/Preview'
+#    name: 'Dev'
 #    needs: plan-dev
 #    strategy:
 #      matrix:
@@ -50,7 +50,7 @@ jobs:
       pr-number: ${{ github.event.pull_request.number }}
 
 #  preview-plan-qa-prod:
-#    name: 'Test/Preview'
+#    name: 'Test'
 #    needs: plan-test
 #    strategy:
 #      matrix:
@@ -76,7 +76,7 @@ jobs:
       pr-number: ${{ github.event.pull_request.number }}
 
 #  preview-plan-prod:
-#    name: 'QA/Preview'
+#    name: 'QA'
 #    needs: plan-qa
 #    strategy:
 #      matrix:
