@@ -1,0 +1,109 @@
+name: 'Deploy'
+
+on:
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  deployments: write
+  actions: read
+
+jobs:
+  plan-dev:
+    name: 'Dev'
+    uses: ./.github/workflows/shared-tofu-plan.yaml
+    with:
+      env: dev
+      pr-number: ${{ github.event.pull_request.number }}
+
+#  preview-plan-test-qa-prod:
+#    name: 'Dev/Preview'
+#    needs: plan-dev
+#    strategy:
+#      matrix:
+#        env: [ test, qa, prod ]
+#    uses: ./.github/workflows/shared-tofu-plan.yaml
+#    with:
+#      env: ${{ matrix.env }}
+#      pr-number: ${{ github.event.pull_request.number }}
+
+  apply-dev:
+    name: 'Dev'
+    needs: plan-dev
+    uses: ./.github/workflows/shared-tofu-apply.yaml
+    with:
+      env: dev
+
+  plan-test:
+    name: 'Test'
+    needs: apply-dev
+    uses: ./.github/workflows/shared-tofu-plan.yaml
+    with:
+      env: test
+      pr-number: ${{ github.event.pull_request.number }}
+
+#  preview-plan-qa-prod:
+#    name: 'Test/Preview'
+#    needs: plan-test
+#    strategy:
+#      matrix:
+#        env: [ qa, prod ]
+#    uses: ./.github/workflows/shared-tofu-plan.yaml
+#    with:
+#      env: ${{ matrix.env }}
+#      pr-number: ${{ github.event.pull_request.number }}
+
+  apply-test:
+    name: 'Test'
+    needs: plan-test
+    uses: ./.github/workflows/shared-tofu-apply.yaml
+    with:
+      env: test
+
+  plan-qa:
+    name: 'QA'
+    needs: apply-test
+    uses: ./.github/workflows/shared-tofu-plan.yaml
+    with:
+      env: qa
+      pr-number: ${{ github.event.pull_request.number }}
+
+#  preview-plan-prod:
+#    name: 'QA/Preview'
+#    needs: plan-qa
+#    strategy:
+#      matrix:
+#        env: [ prod ]
+#    uses: ./.github/workflows/shared-tofu-plan.yaml
+#    with:
+#      env: ${{ matrix.env }}
+#      pr-number: ${{ github.event.pull_request.number }}
+
+  apply-qa:
+    name: 'QA'
+    needs: plan-qa
+    uses: ./.github/workflows/shared-tofu-apply.yaml
+    with:
+      env: qa
+
+  plan-prod:
+    name: 'Prod'
+    needs: apply-qa
+    uses: ./.github/workflows/shared-tofu-plan.yaml
+    with:
+      env: prod
+      pr-number: ${{ github.event.pull_request.number }}
+
+  apply-prod:
+    name: 'Prod'
+    needs: plan-qa
+    uses: ./.github/workflows/shared-tofu-apply.yaml
+    with:
+      env: prod

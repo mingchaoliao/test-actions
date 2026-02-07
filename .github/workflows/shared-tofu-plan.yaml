@@ -1,0 +1,44 @@
+name: 'OpenTofu Plan'
+
+on:
+  workflow_call:
+    inputs:
+      env:
+        description: 'Environment to plan (e.g. dev, test, qa, prod)'
+        required: true
+        type: string
+      pr-number:
+        description: 'Pull request number'
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  actions: read
+
+jobs:
+  plan:
+    name: 'Plan (${{ inputs.env }})'
+    runs-on: cad
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_wrapper: false
+
+      - name: OpenTofu Plan
+        uses: op5dev/tf-via-pr@v13
+        with:
+          tool: tofu
+          hide-args: ""
+          tag-actor: never
+          arg-var: env=${{ inputs.env }}
+          command: plan
+          pr-number: ${{ inputs.pr-number }}
+          comment-method: recreate

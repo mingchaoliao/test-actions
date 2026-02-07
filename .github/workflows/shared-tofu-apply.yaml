@@ -1,0 +1,42 @@
+name: 'OpenTofu Apply'
+
+on:
+  workflow_call:
+    inputs:
+      env:
+        description: 'Environment to apply (e.g. dev, test, qa, prod)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  actions: read
+  deployments: write
+
+jobs:
+  apply:
+    name: 'Apply (${{ inputs.env }})'
+    runs-on: cad
+    environment: ${{ inputs.env }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_wrapper: false
+
+      - name: OpenTofu Plan
+        uses: op5dev/tf-via-pr@v13
+        with:
+          tool: tofu
+          hide-args: ""
+          tag-actor: never
+          arg-var: env=${{ inputs.env }}
+          command: apply
+          pr-number: ${{ inputs.pr-number }}
+          comment-method: recreate
