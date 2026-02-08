@@ -36,7 +36,7 @@ jobs:
           tool: tofu
           hide-args: ""
           tag-actor: never
-          arg-var-file: environments/${{ inputs.env }}
+          arg-var-file: environments/${{ inputs.env }}/constants.tfvars
           command: apply
           pr-number: ${{ inputs.pr-number }}
           comment-method: recreate
