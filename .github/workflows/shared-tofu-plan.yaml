@@ -43,8 +43,7 @@ jobs:
           tool: tofu
           hide-args: ""
           tag-actor: never
-          plan-file: ${{ inputs.env }}.tfplan
-          arg-var: env=${{ inputs.env }}
+          arg-var-file: environments/${{ inputs.env }}
           command: plan
           pr-number: ${{ inputs.pr-number }}
           comment-method: recreate
