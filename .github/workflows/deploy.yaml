@@ -103,7 +103,7 @@ jobs:
 
   apply-prod:
     name: 'Prod'
-    needs: plan-qa
+    needs: plan-prod
     uses: ./.github/workflows/shared-tofu-apply.yaml
     with:
       env: prod
