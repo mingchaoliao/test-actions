@@ -23,16 +23,17 @@ jobs:
       env: dev
       pr-number: ${{ github.event.pull_request.number }}
 
-#  preview-plan-test-qa-prod:
-#    name: 'Dev'
-#    needs: plan-dev
-#    strategy:
-#      matrix:
-#        env: [ test, qa, prod ]
-#    uses: ./.github/workflows/shared-tofu-plan.yaml
-#    with:
-#      env: ${{ matrix.env }}
-#      pr-number: ${{ github.event.pull_request.number }}
+  preview-plan-test-qa-prod:
+    name: 'Dev'
+    needs: plan-dev
+    strategy:
+      matrix:
+        env: [ test, qa, prod ]
+    uses: ./.github/workflows/shared-tofu-plan.yaml
+    with:
+      env: ${{ matrix.env }}
+      pr-number: ${{ github.event.pull_request.number }}
+      is-preview: 'true'
 
   apply-dev:
     name: 'Dev'
@@ -49,16 +50,17 @@ jobs:
       env: test
       pr-number: ${{ github.event.pull_request.number }}
 
-#  preview-plan-qa-prod:
-#    name: 'Test'
-#    needs: plan-test
-#    strategy:
-#      matrix:
-#        env: [ qa, prod ]
-#    uses: ./.github/workflows/shared-tofu-plan.yaml
-#    with:
-#      env: ${{ matrix.env }}
-#      pr-number: ${{ github.event.pull_request.number }}
+  preview-plan-qa-prod:
+    name: 'Test'
+    needs: plan-test
+    strategy:
+      matrix:
+        env: [ qa, prod ]
+    uses: ./.github/workflows/shared-tofu-plan.yaml
+    with:
+      env: ${{ matrix.env }}
+      pr-number: ${{ github.event.pull_request.number }}
+      is-preview: 'true'
 
   apply-test:
     name: 'Test'
@@ -75,16 +77,17 @@ jobs:
       env: qa
       pr-number: ${{ github.event.pull_request.number }}
 
-#  preview-plan-prod:
-#    name: 'QA'
-#    needs: plan-qa
-#    strategy:
-#      matrix:
-#        env: [ prod ]
-#    uses: ./.github/workflows/shared-tofu-plan.yaml
-#    with:
-#      env: ${{ matrix.env }}
-#      pr-number: ${{ github.event.pull_request.number }}
+  preview-plan-prod:
+    name: 'QA'
+    needs: plan-qa
+    strategy:
+      matrix:
+        env: [ prod ]
+    uses: ./.github/workflows/shared-tofu-plan.yaml
+    with:
+      env: ${{ matrix.env }}
+      pr-number: ${{ github.event.pull_request.number }}
+      is-preview: 'true'
 
   apply-qa:
     name: 'QA'
