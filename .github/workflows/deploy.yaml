@@ -33,7 +33,7 @@ jobs:
     with:
       env: ${{ matrix.env }}
       pr-number: ${{ github.event.pull_request.number }}
-      is-preview: 'true'
+      is-preview: true
 
   apply-dev:
     name: 'Dev'
@@ -60,7 +60,7 @@ jobs:
     with:
       env: ${{ matrix.env }}
       pr-number: ${{ github.event.pull_request.number }}
-      is-preview: 'true'
+      is-preview: true
 
   apply-test:
     name: 'Test'
@@ -87,7 +87,7 @@ jobs:
     with:
       env: ${{ matrix.env }}
       pr-number: ${{ github.event.pull_request.number }}
-      is-preview: 'true'
+      is-preview: true
 
   apply-qa:
     name: 'QA'
