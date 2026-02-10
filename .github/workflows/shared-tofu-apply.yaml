@@ -22,6 +22,8 @@ jobs:
     environment: ${{ inputs.env }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: ${{ inputs.env }}
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -34,6 +36,7 @@ jobs:
         uses: op5dev/tf-via-pr@v13
         with:
           tool: tofu
+          arg-chdir: ${{ inputs.env }}
           hide-args: ""
           tag-actor: never
           arg-var-file: environments/${{ inputs.env }}/constants.tfvars
