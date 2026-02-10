@@ -42,6 +42,7 @@ jobs:
       - name: OpenTofu Plan
         uses: op5dev/tf-via-pr@v13
         with:
+          plan-file: ${{ inputs.env }}.tfplan
           tool: tofu
           arg-chdir: ${{ inputs.env }}
           hide-args: ""
