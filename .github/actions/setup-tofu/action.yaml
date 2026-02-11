@@ -27,7 +27,7 @@ runs:
         TARGET_ENV: ${{ inputs.env }}
         SAS_TOKEN: ${{ inputs.sas-token }}
       run: |
-        cat <<EOF > backend.ini
+        cat <<EOF > ${TARGET_ENV}/backend.ini
         key="${TARGET_ENV}.tofu.tfstate"
         sas_token="${SAS_TOKEN}"
         EOF
@@ -37,7 +37,7 @@ runs:
         TARGET_ENV: ${{ inputs.env }}
         AZ_CLIENT_SECRET: ${{ inputs.az-client-secret }}
       run: |
-        cat <<EOF > variables.tfvars
+        cat <<EOF > ${TARGET_ENV}/variables.tfvars
         env="${TARGET_ENV}"
         az_main_tofu_automation_client_secret="${AZ_CLIENT_SECRET}"
         EOF
