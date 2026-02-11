@@ -25,7 +25,7 @@ permissions:
 
 jobs:
   plan:
-    name: ${{ inputs.is-preview && format('Preview Plan ({0})', inputs.env) || format('Plan ({0})', inputs.env) }}
+    name: ${{ inputs.is-preview && format('Preview Tofu Plan ({0})', inputs.env) || format('Tofu Plan ({0})', inputs.env) }}
     runs-on: cad
     steps:
       - uses: actions/checkout@v4

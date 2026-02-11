@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   apply:
-    name: 'Apply (${{ inputs.env }})'
+    name: 'Tofu Apply (${{ inputs.env }})'
     runs-on: cad
     environment: ${{ inputs.env }}
     steps:
