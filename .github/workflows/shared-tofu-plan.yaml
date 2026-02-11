@@ -1,0 +1,64 @@
+name: 'OpenTofu Plan'
+
+on:
+  workflow_call:
+    inputs:
+      env:
+        description: 'Environment to plan (e.g. dev, test, qa, prod)'
+        required: true
+        type: string
+      pr-number:
+        description: 'Pull request number'
+        required: true
+        type: number
+      is-preview:
+        description: 'Is this a plan preview?'
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      SAS_TOKEN:
+        required: true
+      AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET:
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  actions: read
+
+jobs:
+  plan:
+    name: ${{ inputs.is-preview && format('Preview Tofu Plan ({0})', inputs.env) || format('Tofu Plan ({0})', inputs.env) }}
+    runs-on: cad
+    steps:
+      - name: Checkout Actions
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+          path: .
+
+      - uses: actions/checkout@v4
+        with:
+          path: ${{ inputs.env }}
+
+      - uses: ./.github/actions/setup-tofu
+        with:
+          env: ${{ inputs.env }}
+          sas-token: ${{ secrets.SAS_TOKEN }}
+          az-client-secret: ${{ secrets.AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET }}
+
+      - name: OpenTofu Plan
+        uses: op5dev/tf-via-pr@v13
+        with:
+          tool: tofu
+          arg-chdir: ${{ inputs.env }}
+          arg-backend-config: "backend.ini"
+          hide-args: ""
+          validate: ${{ inputs.env == 'dev' && 'true' || 'false' }}
+          tag-actor: never
+          upload-plan: ${{ inputs.is-preview && 'false' || 'true' }}
+          command: plan
+          pr-number: ${{ inputs.pr-number }}
+          comment-method: recreate

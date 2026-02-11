@@ -1,0 +1,73 @@
+name: 'Plan-Preview-Apply'
+
+on:
+  workflow_call:
+    inputs:
+      env:
+        description: 'Environment to apply (e.g. dev, test, qa, prod)'
+        required: true
+        type: string
+      pr-number:
+        description: 'Pull request number'
+        required: true
+        type: number
+      preview-envs:
+        description: 'List of preview environments to plan (e.g. test, qa, prod)'
+        required: false
+        type: string
+    secrets:
+      SAS_TOKEN:
+        required: true
+      AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET:
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  deployments: write
+  actions: read
+
+jobs:
+  plan:
+    name: 'Plan (${{ inputs.env }})'
+    uses: ./.github/workflows/shared-tofu-plan.yaml
+    concurrency:
+      group: tofu-plan-${{ inputs.env }}-${{ github.ref }}
+      cancel-in-progress: true
+    with:
+      env: ${{ inputs.env }}
+      pr-number: ${{ inputs.pr-number }}
+    secrets:
+      SAS_TOKEN: ${{ secrets.SAS_TOKEN }}
+      AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET: ${{ secrets.AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET }}
+
+  preview:
+    if: ${{ inputs.preview-envs }}
+    name: 'Preview'
+    needs: plan
+    concurrency:
+      group: tofu-plan-${{ matrix.env }}-${{ github.ref }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        env: ${{ fromJSON(inputs.preview-envs) }}
+    uses: ./.github/workflows/shared-tofu-plan.yaml
+    with:
+      env: ${{ matrix.env }}
+      pr-number: ${{ inputs.pr-number }}
+      is-preview: true
+    secrets:
+      SAS_TOKEN: ${{ secrets.SAS_TOKEN }}
+      AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET: ${{ secrets.AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET }}
+
+  apply:
+    name: 'Apply (${{ inputs.env }})'
+    needs: plan
+    uses: ./.github/workflows/shared-tofu-apply.yaml
+    with:
+      env: ${{ inputs.env }}
+    secrets:
+      SAS_TOKEN: ${{ secrets.SAS_TOKEN }}
+      AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET: ${{ secrets.AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET }}

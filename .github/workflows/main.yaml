@@ -1,0 +1,63 @@
+name: 'Deploy'
+
+on:
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  deployments: write
+  actions: read
+
+jobs:
+  dev:
+    name: 'Dev'
+    uses: ./.github/workflows/shared-plan-preview-apply.yaml
+    secrets:
+      SAS_TOKEN: ${{ secrets.SAS_TOKEN }}
+      AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET: ${{ secrets.AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET }}
+    with:
+      env: dev
+      pr-number: ${{ github.event.pull_request.number }}
+      preview-envs: '["test", "qa", "prod"]}'
+
+  test:
+    name: 'Test'
+    needs: dev
+    uses: ./.github/workflows/shared-plan-preview-apply.yaml
+    secrets:
+      SAS_TOKEN: ${{ secrets.SAS_TOKEN }}
+      AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET: ${{ secrets.AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET }}
+    with:
+      env: test
+      pr-number: ${{ github.event.pull_request.number }}
+      preview-envs: '["qa", "prod"]}'
+
+  qa:
+    name: 'QA'
+    needs: test
+    uses: ./.github/workflows/shared-plan-preview-apply.yaml
+    secrets:
+      SAS_TOKEN: ${{ secrets.SAS_TOKEN }}
+      AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET: ${{ secrets.AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET }}
+    with:
+      env: qa
+      pr-number: ${{ github.event.pull_request.number }}
+      preview-envs: '["prod"]'
+
+  prod:
+    name: 'Prod'
+    needs: qa
+    uses: ./.github/workflows/shared-plan-preview-apply.yaml
+    secrets:
+      SAS_TOKEN: ${{ secrets.SAS_TOKEN }}
+      AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET: ${{ secrets.AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET }}
+    with:
+      env: prod
+      pr-number: ${{ github.event.pull_request.number }}

@@ -1,0 +1,55 @@
+name: 'OpenTofu Apply'
+
+on:
+  workflow_call:
+    inputs:
+      env:
+        description: 'Environment to apply (e.g. dev, test, qa, prod)'
+        required: true
+        type: string
+    secrets:
+      SAS_TOKEN:
+        required: true
+      AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET:
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  actions: read
+  deployments: write
+
+jobs:
+  apply:
+    name: 'Tofu Apply (${{ inputs.env }})'
+    runs-on: cad
+    environment: ${{ inputs.env }}
+    steps:
+      - name: Checkout Actions
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+          path: .
+
+      - uses: actions/checkout@v4
+        with:
+          path: ${{ inputs.env }}
+
+      - uses: ./.github/actions/setup-tofu
+        with:
+          env: ${{ inputs.env }}
+          sas-token: ${{ secrets.SAS_TOKEN }}
+          az-client-secret: ${{ secrets.AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET }}
+
+      - name: OpenTofu Plan
+        uses: op5dev/tf-via-pr@v13
+        with:
+          tool: tofu
+          arg-chdir: ${{ inputs.env }}
+          arg-backend-config: "backend.ini"
+          hide-args: ""
+          tag-actor: never
+          command: apply
+          pr-number: ${{ inputs.pr-number }}
+          comment-method: recreate

@@ -1,0 +1,58 @@
+name: Deploy Trigger
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: 'The environment to which a deployment should be done'
+        required: true
+      ref:
+        description: 'The ref to deploy'
+        required: false
+
+jobs:
+  trigger-deploy:
+    runs-on: cad
+    steps:
+      - name: Find and Approve Environment
+        env:
+          # Use a PAT or App Token for a user authorized as a reviewer
+          GH_TOKEN: ${{ secrets.CAD_GITHUB_PAT }}
+          TARGET_ENV: ${{ github.event.inputs.env }}
+          TARGET_REF: ${{ github.event.inputs.ref }}
+        run: |
+          echo "Looking for pending '$TARGET_ENV' deployments for ref '$TARGET_REF'..."
+
+          # 1. Find the Run ID for the ref that is currently 'waiting'
+          # We filter by status=waiting to find workflows stuck at a gate
+          RUN_ID=$(gh api "/repos/${{ github.repository }}/actions/runs?head_sha=$TARGET_REF&status=waiting" \
+            --jq ".workflow_runs[0].id")
+
+          if [ "$RUN_ID" = "null" ] || [ -z "$RUN_ID" ]; then
+            echo "::error::No waiting workflow runs found for ref $TARGET_REF"
+            exit 1
+          fi
+
+          echo "Found Waiting Run ID: $RUN_ID"
+
+          # 2. Get the specific Environment ID that matches the input name
+          # We check the pending_deployments endpoint for the matching environment name
+          ENV_DATA=$(gh api "/repos/${{ github.repository }}/actions/runs/$RUN_ID/pending_deployments")
+          ENV_ID=$(echo "$ENV_DATA" | jq -r ".[] | select(.environment.name == \"$TARGET_ENV\") | .environment.id")
+
+          if [ -z "$ENV_ID" ]; then
+            echo "::error::Environment '$TARGET_ENV' is not currently pending approval in run $RUN_ID"
+            exit 1
+          fi
+
+          echo "Found Environment ID: $ENV_ID. Submitting approval..."
+
+          # 3. Submit the approval
+          jq -n --argjson env_ids "[$ENV_ID]" \
+            '{environment_ids: $env_ids, state: "approved", comment: "Automated approval via API"}' \
+            | gh api --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/actions/runs/$RUN_ID/pending_deployments" \
+            --input -
+
+          echo "Successfully approved deployment to $TARGET_ENV"
