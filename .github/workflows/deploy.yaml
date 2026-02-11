@@ -48,12 +48,11 @@ jobs:
           echo "Found Environment ID: $ENV_ID. Submitting approval..."
 
           # 3. Submit the approval
-          gh api \
-            --method POST \
+          jq -n --argjson env_ids "[$ENV_ID]" \
+            '{environment_ids: $env_ids, state: "approved", comment: "Automated approval via API"}' \
+            | gh api --method POST \
             -H "Accept: application/vnd.github+json" \
             "/repos/${{ github.repository }}/actions/runs/$RUN_ID/pending_deployments" \
-            -f "environment_ids[]=$ENV_ID" \
-            -f state='approved' \
-            -f comment="Automated approval for $TARGET_ENV via API"
+            --input -
 
           echo "Successfully approved deployment to $TARGET_ENV"
