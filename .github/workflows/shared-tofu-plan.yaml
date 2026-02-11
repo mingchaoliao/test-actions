@@ -32,7 +32,7 @@ jobs:
         with:
           path: ${{ inputs.env }}
 
-      - uses: ./.github/actions/setup-tofu
+      - uses: ./${{ inputs.env }}/.github/actions/setup-tofu
         with:
           env: ${{ inputs.env }}
           sas-token: ${{ secrets.SAS_TOKEN }}
