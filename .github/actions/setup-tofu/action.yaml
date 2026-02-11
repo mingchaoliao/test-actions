@@ -1,0 +1,43 @@
+name: 'Setup Tofu with Backend and Vars'
+
+inputs:
+  env:
+    description: 'Environment to apply (e.g. dev, test, qa, prod)'
+    required: true
+  sas-token:
+    description: 'sas token to access the state file'
+    required: true
+  az-client-secret:
+    description: 'Azure client secret for OpenTofu'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24.x'
+    - uses: opentofu/setup-opentofu@v1
+      with:
+        tofu_wrapper: false
+    - name: Create backend.ini
+      shell: bash
+      env:
+        TARGET_ENV: ${{ inputs.env }}
+        SAS_TOKEN: ${{ inputs.sas-token }}
+      run: |
+        cat <<EOF > backend.ini
+        key="${TARGET_ENV}.tofu.tfstate"
+        sas_token="${SAS_TOKEN}"
+        EOF
+    - name: Create variables.tfvars
+      shell: bash
+      env:
+        TARGET_ENV: ${{ inputs.env }}
+        AZ_CLIENT_SECRET: ${{ inputs.az-client-secret }}
+      run: |
+        cat <<EOF > variables.tfvars
+        env="${TARGET_ENV}"
+        az_main_tofu_automation_client_secret="${AZ_CLIENT_SECRET}"
+        EOF

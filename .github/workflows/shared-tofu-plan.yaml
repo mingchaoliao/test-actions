@@ -31,24 +31,23 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: ${{ inputs.env }}
-      - name: Setup Node
-        uses: actions/setup-node@v4
+
+      - uses: ./.github/actions/setup-tofu
         with:
-          node-version: '22.x'
-      - uses: opentofu/setup-opentofu@v1
-        with:
-          tofu_wrapper: false
+          env: ${{ inputs.env }}
+          sas-token: ${{ secrets.SAS_TOKEN }}
+          az-client-secret: ${{ secrets.AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET }}
 
       - name: OpenTofu Plan
         uses: op5dev/tf-via-pr@v13
         with:
           tool: tofu
           arg-chdir: ${{ inputs.env }}
+          arg-backend-config: "backend.ini"
           hide-args: ""
           validate: ${{ inputs.env == 'dev' && 'true' || 'false' }}
           tag-actor: never
           upload-plan: ${{ inputs.is-preview && 'false' || 'true' }}
-          arg-var-file: environments/${{ inputs.env }}/constants.tfvars
           command: plan
           pr-number: ${{ inputs.pr-number }}
           comment-method: recreate
