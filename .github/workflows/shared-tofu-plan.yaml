@@ -28,11 +28,17 @@ jobs:
     name: ${{ inputs.is-preview && format('Preview Tofu Plan ({0})', inputs.env) || format('Tofu Plan ({0})', inputs.env) }}
     runs-on: cad
     steps:
+      - name: Checkout Actions
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+          path: .
+
       - uses: actions/checkout@v4
         with:
           path: ${{ inputs.env }}
 
-      - uses: ./${{ inputs.env }}/.github/actions/setup-tofu
+      - uses: ./.github/actions/setup-tofu
         with:
           env: ${{ inputs.env }}
           sas-token: ${{ secrets.SAS_TOKEN }}

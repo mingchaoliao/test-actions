@@ -21,11 +21,17 @@ jobs:
     runs-on: cad
     environment: ${{ inputs.env }}
     steps:
+      - name: Checkout Actions
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+          path: .
+
       - uses: actions/checkout@v4
         with:
           path: ${{ inputs.env }}
 
-      - uses: ./${{ inputs.env }}/.github/actions/setup-tofu
+      - uses: ./.github/actions/setup-tofu
         with:
           env: ${{ inputs.env }}
           sas-token: ${{ secrets.SAS_TOKEN }}
