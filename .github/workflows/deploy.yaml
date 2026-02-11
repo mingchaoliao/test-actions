@@ -1,112 +1,40 @@
-name: 'Deploy'
+name: Deploy Trigger
 
 on:
-  pull_request:
-    branches: [ main ]
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
-
-permissions:
-  contents: read
-  pull-requests: write
-  checks: write
-  deployments: write
-  actions: read
+  workflow_dispatch:
+    inputs:
+      env:
+        description: 'The environment to which a deployment should be done'
+        required: true
+      ref:
+        description: 'The ref to deploy'
+        required: false
 
 jobs:
-  plan-dev:
-    name: 'Dev'
-    uses: ./.github/workflows/shared-tofu-plan.yaml
-    with:
-      env: dev
-      pr-number: ${{ github.event.pull_request.number }}
+  trigger-deploy:
+    runs-on: cad
+    env:
+#      GH_TOKEN: ${{ secrets.APPROVER_PAT }}
+#      RUN_ID: ${{ github.event.inputs.run_id }}
+    steps:
+      - name: Approve Deployment via REST API
+        run: |
+          # 1. Fetch pending deployments to get environment IDs
+          PENDING_DATA=$(gh api /repos/${{ github.repository }}/actions/runs/$RUN_ID/pending_deployments)
 
-  preview-plan-test-qa-prod:
-    name: 'Dev'
-    needs: plan-dev
-    strategy:
-      matrix:
-        env: [ test, qa, prod ]
-    uses: ./.github/workflows/shared-tofu-plan.yaml
-    with:
-      env: ${{ matrix.env }}
-      pr-number: ${{ github.event.pull_request.number }}
-      is-preview: true
+          # 2. Extract environment IDs using jq (pre-installed on runners)
+          ENV_IDS=$(echo "$PENDING_DATA" | jq -r '.[].environment.id' | tr '\n' ',' | sed 's/,$//')
 
-  apply-dev:
-    name: 'Dev'
-    needs: plan-dev
-    uses: ./.github/workflows/shared-tofu-apply.yaml
-    with:
-      env: dev
+          if [ -z "$ENV_IDS" ]; then
+            echo "No pending deployments found for Run ID $RUN_ID"
+            exit 0
+          fi
 
-  plan-test:
-    name: 'Test'
-    needs: apply-dev
-    uses: ./.github/workflows/shared-tofu-plan.yaml
-    with:
-      env: test
-      pr-number: ${{ github.event.pull_request.number }}
-
-  preview-plan-qa-prod:
-    name: 'Test'
-    needs: plan-test
-    strategy:
-      matrix:
-        env: [ qa, prod ]
-    uses: ./.github/workflows/shared-tofu-plan.yaml
-    with:
-      env: ${{ matrix.env }}
-      pr-number: ${{ github.event.pull_request.number }}
-      is-preview: true
-
-  apply-test:
-    name: 'Test'
-    needs: plan-test
-    uses: ./.github/workflows/shared-tofu-apply.yaml
-    with:
-      env: test
-
-  plan-qa:
-    name: 'QA'
-    needs: apply-test
-    uses: ./.github/workflows/shared-tofu-plan.yaml
-    with:
-      env: qa
-      pr-number: ${{ github.event.pull_request.number }}
-
-  preview-plan-prod:
-    name: 'QA'
-    needs: plan-qa
-    strategy:
-      matrix:
-        env: [ prod ]
-    uses: ./.github/workflows/shared-tofu-plan.yaml
-    with:
-      env: ${{ matrix.env }}
-      pr-number: ${{ github.event.pull_request.number }}
-      is-preview: true
-
-  apply-qa:
-    name: 'QA'
-    needs: plan-qa
-    uses: ./.github/workflows/shared-tofu-apply.yaml
-    with:
-      env: qa
-
-  plan-prod:
-    name: 'Prod'
-    needs: apply-qa
-    uses: ./.github/workflows/shared-tofu-plan.yaml
-    with:
-      env: prod
-      pr-number: ${{ github.event.pull_request.number }}
-
-  apply-prod:
-    name: 'Prod'
-    needs: plan-prod
-    uses: ./.github/workflows/shared-tofu-apply.yaml
-    with:
-      env: prod
+          # 3. Submit approval for all pending environments
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/actions/runs/$RUN_ID/pending_deployments \
+            -f "environment_ids[]=$ENV_IDS" \
+            -f state='approved' \
+            -f comment='Automatic approval via gh cli'

@@ -36,7 +36,6 @@ jobs:
         uses: op5dev/tf-via-pr@v13
         with:
           tool: tofu
-          plan-file: ${{ inputs.env }}.tfplan
           arg-chdir: ${{ inputs.env }}
           hide-args: ""
           tag-actor: never
