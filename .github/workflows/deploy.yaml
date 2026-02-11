@@ -25,7 +25,7 @@ jobs:
 
           # 1. Find the Run ID for the ref that is currently 'waiting'
           # We filter by status=waiting to find workflows stuck at a gate
-          RUN_ID=$(gh api "/repos/${{ github.repository }}/actions/runs?branch=$TARGET_REF&status=waiting" \
+          RUN_ID=$(gh api "/repos/${{ github.repository }}/actions/runs?head_sha=$TARGET_REF&status=waiting" \
             --jq ".workflow_runs[0].id")
 
           if [ "$RUN_ID" = "null" ] || [ -z "$RUN_ID" ]; then
