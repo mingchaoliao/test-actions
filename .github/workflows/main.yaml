@@ -26,7 +26,11 @@ jobs:
   preview-plan-test-qa-prod:
     name: 'Dev'
     needs: plan-dev
+    concurrency:
+      group: tofu-plan-${{ matrix.env }}-${{ github.ref }}
+      cancel-in-progress: true
     strategy:
+      fail-fast: false
       matrix:
         env: [ test, qa, prod ]
     uses: ./.github/workflows/shared-tofu-plan.yaml
@@ -45,6 +49,9 @@ jobs:
   plan-test:
     name: 'Test'
     needs: apply-dev
+    concurrency:
+      group: tofu-plan-test-${{ github.ref }}
+      cancel-in-progress: true
     uses: ./.github/workflows/shared-tofu-plan.yaml
     with:
       env: test
@@ -53,7 +60,11 @@ jobs:
   preview-plan-qa-prod:
     name: 'Test'
     needs: plan-test
+    concurrency:
+      group: tofu-plan-${{ matrix.env }}-${{ github.ref }}
+      cancel-in-progress: true
     strategy:
+      fail-fast: false
       matrix:
         env: [ qa, prod ]
     uses: ./.github/workflows/shared-tofu-plan.yaml
@@ -72,6 +83,9 @@ jobs:
   plan-qa:
     name: 'QA'
     needs: apply-test
+    concurrency:
+      group: tofu-plan-qa-${{ github.ref }}
+      cancel-in-progress: true
     uses: ./.github/workflows/shared-tofu-plan.yaml
     with:
       env: qa
@@ -80,7 +94,11 @@ jobs:
   preview-plan-prod:
     name: 'QA'
     needs: plan-qa
+    concurrency:
+      group: tofu-plan-${{ matrix.env }}-${{ github.ref }}
+      cancel-in-progress: true
     strategy:
+      fail-fast: false
       matrix:
         env: [ prod ]
     uses: ./.github/workflows/shared-tofu-plan.yaml
@@ -99,6 +117,9 @@ jobs:
   plan-prod:
     name: 'Prod'
     needs: apply-qa
+    concurrency:
+      group: tofu-plan-prod-${{ github.ref }}
+      cancel-in-progress: true
     uses: ./.github/workflows/shared-tofu-plan.yaml
     with:
       env: prod
