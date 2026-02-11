@@ -15,6 +15,11 @@ on:
         description: 'List of preview environments to plan (e.g. test, qa, prod)'
         required: false
         type: string
+    secrets:
+      SAS_TOKEN:
+        required: true
+      AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET:
+        required: true
 
 permissions:
   contents: read
@@ -33,6 +38,9 @@ jobs:
     with:
       env: ${{ inputs.env }}
       pr-number: ${{ inputs.pr-number }}
+    secrets:
+      SAS_TOKEN: ${{ secrets.SAS_TOKEN }}
+      AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET: ${{ secrets.AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET }}
 
   preview:
     if: ${{ inputs.preview-envs }}
@@ -50,6 +58,9 @@ jobs:
       env: ${{ matrix.env }}
       pr-number: ${{ inputs.pr-number }}
       is-preview: true
+    secrets:
+      SAS_TOKEN: ${{ secrets.SAS_TOKEN }}
+      AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET: ${{ secrets.AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET }}
 
   apply:
     name: 'Apply (${{ inputs.env }})'
@@ -57,3 +68,6 @@ jobs:
     uses: ./.github/workflows/shared-tofu-apply.yaml
     with:
       env: ${{ inputs.env }}
+    secrets:
+      SAS_TOKEN: ${{ secrets.SAS_TOKEN }}
+      AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET: ${{ secrets.AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET }}

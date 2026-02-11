@@ -19,6 +19,9 @@ jobs:
   dev:
     name: 'Dev'
     uses: ./.github/workflows/shared-plan-preview-apply.yaml
+    secrets:
+      SAS_TOKEN: ${{ secrets.SAS_TOKEN }}
+      AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET: ${{ secrets.AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET }}
     with:
       env: dev
       pr-number: ${{ github.event.pull_request.number }}
@@ -28,6 +31,9 @@ jobs:
     name: 'Test'
     needs: dev
     uses: ./.github/workflows/shared-plan-preview-apply.yaml
+    secrets:
+      SAS_TOKEN: ${{ secrets.SAS_TOKEN }}
+      AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET: ${{ secrets.AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET }}
     with:
       env: test
       pr-number: ${{ github.event.pull_request.number }}
@@ -37,6 +43,9 @@ jobs:
     name: 'QA'
     needs: test
     uses: ./.github/workflows/shared-plan-preview-apply.yaml
+    secrets:
+      SAS_TOKEN: ${{ secrets.SAS_TOKEN }}
+      AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET: ${{ secrets.AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET }}
     with:
       env: qa
       pr-number: ${{ github.event.pull_request.number }}
@@ -46,6 +55,9 @@ jobs:
     name: 'Prod'
     needs: qa
     uses: ./.github/workflows/shared-plan-preview-apply.yaml
+    secrets:
+      SAS_TOKEN: ${{ secrets.SAS_TOKEN }}
+      AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET: ${{ secrets.AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET }}
     with:
       env: prod
       pr-number: ${{ github.event.pull_request.number }}

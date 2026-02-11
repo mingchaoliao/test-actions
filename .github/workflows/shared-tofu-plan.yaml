@@ -16,6 +16,11 @@ on:
         required: false
         type: boolean
         default: false
+    secrets:
+      SAS_TOKEN:
+        required: true
+      AZ_MAIN_TOFU_AUTOMATION_CLIENT_SECRET:
+        required: true
 
 permissions:
   contents: read
